@@ -50,3 +50,11 @@ def beta(
         return min_val
     standard_beta = x / (x + y)
     return min_val + (max_val - min_val) * standard_beta
+
+
+def exponential(mean: float) -> float:
+    u = uniform(0, 1)
+    while u == 0.0:
+        u = uniform(0, 1)
+    lambd = 1.0 / mean
+    return -math.log(u) / lambd
