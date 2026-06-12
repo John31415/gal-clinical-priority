@@ -2,12 +2,12 @@ import random
 import math
 
 
-def uniform(a: float, b: float) -> float:
+def uniform(a: float = 0, b: float = 1) -> float:
     u = random.random()
     return a + (b - a) * u
 
 
-def normal(mu: float, sigma: float) -> float:
+def normal(mu: float = 0, sigma: float = 1) -> float:
     u1 = random.random()
     u2 = random.random()
     while u1 == 0.0:
@@ -16,7 +16,7 @@ def normal(mu: float, sigma: float) -> float:
     return mu + z * sigma
 
 
-def gamma(alpha: float) -> float:
+def gamma(alpha: float = 1) -> float:
     if alpha <= 0:
         raise ValueError("Alpha must be greater than 0")
     if alpha < 1.0:
@@ -38,7 +38,7 @@ def gamma(alpha: float) -> float:
 
 
 def beta(
-    alpha: float, beta: float, min_val: float = 0.0, max_val: float = 1.0
+    alpha: float = 1, beta: float = 1, min_val: float = 0.0, max_val: float = 1.0
 ) -> float:
     if alpha <= 0 or beta <= 0:
         raise ValueError("Alpha and Beta must be greater than 0")
