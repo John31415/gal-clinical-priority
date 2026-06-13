@@ -10,7 +10,7 @@ def deaths(patients: list[Patient]) -> int:
 
 
 def minimum_health_sum(patients: list[Patient]) -> float:
-    return sum(patient.minimum_health_reached for patient in patients)
+    return sum(patient.minimum_health_reached for patient in patients if patient.is_alive)
 
 
 def evaluate_solution(patients: list[Patient]) -> tuple[int, float]:
