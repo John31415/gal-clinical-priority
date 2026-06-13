@@ -1,7 +1,7 @@
 from collections import defaultdict
 import csv
 import json
-import os
+from src.utils.load_json import load_json
 
 disease_mapping = defaultdict(set)
 drug_mapping = defaultdict(set)
@@ -55,16 +55,7 @@ def text_json_to_dict(text: str) -> dict:
 
 
 def text2json(dict: dict, path: str) -> None:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    data = []
-    if os.path.exists(path) and os.path.getsize(path) > 0:
-        with open(path, "r", encoding="utf-8") as f:
-            try:
-                data = json.load(f)
-                if not isinstance(data, list):
-                    data = [data]
-            except json.JSONDecodeError:
-                data = []
+    data = load_json(path=path)
     data.append(dict)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
