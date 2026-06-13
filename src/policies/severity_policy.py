@@ -6,6 +6,7 @@ from src.policies.base_policy import PriorityPolicy
 class SeverityPolicy(PriorityPolicy):
 
     def order_patients(
-        self, patients: list[Patient], hospital: Hospital
+        self, patients: list[Patient], hospital: Hospital, arrivals: list[Patient] = []
     ) -> list[Patient]:
+        patients += arrivals
         return sorted(patients, key=lambda p: p.health_level)

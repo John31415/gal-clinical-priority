@@ -7,6 +7,6 @@ class PriorityPolicy(ABC):
 
     @abstractmethod
     def order_patients(
-        self, patients: list[Patient], hospital: Hospital
+        self, patients: list[Patient], hospital: Hospital, arrivals: list[Patient] = []
     ) -> list[Patient]:
         pass
