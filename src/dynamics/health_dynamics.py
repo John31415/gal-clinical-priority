@@ -3,15 +3,15 @@ from src.distributions.distributions import normal
 
 
 def compute_deterioration(patient: Patient) -> float:
-    noise = normal(mu=0.0, sigma=0.05)
-    deterioration = patient.deterioration_rate * (1.0 + noise)
-    return max(1.0, deterioration)
+    noise = normal(mu=1.0, sigma=0.10204)
+    deterioration = patient.deterioration_rate * noise
+    return min(10.0, max(1.0, deterioration)) / 10.0
 
 
 def compute_improvement(patient: Patient) -> float:
-    noise = normal(mu=0.0, sigma=0.05)
-    improvement = patient.improvement_rate * (1.0 + noise)
-    return max(1.0, improvement)
+    noise = normal(mu=1.0, sigma=0.10204)
+    improvement = patient.improvement_rate * noise
+    return min(10.0, max(1.0, improvement)) / 20.0
 
 
 def deteriorate_patient(patient: Patient) -> None:

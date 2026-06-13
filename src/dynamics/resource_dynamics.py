@@ -1,9 +1,8 @@
-from src.domain.patient import Patient
-
-
-def health_factor(patient: Patient) -> float:
-    return (11.0 - patient.health_level) / 10.0
+from src.domain.patient import Patient, MAX_HEALTH
 
 
 def compute_resource_consumption(patient: Patient) -> float:
-    return patient.improvement_rate * health_factor(patient)
+    x = (patient.health_level - patient.minimum_health_reached) / (
+        MAX_HEALTH - patient.minimum_health_reached
+    )
+    return 2 * x - x**2
