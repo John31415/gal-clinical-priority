@@ -7,6 +7,7 @@ MAX_HEALTH = 10.0
 
 
 class PatientStatus(Enum):
+    PENDING = "pending"
     WAITING = "waiting"
     ADMITTED = "admitted"
     DISCHARGED = "discharged"
@@ -22,7 +23,8 @@ class Patient:
     deterioration_rate: float
     improvement_rate: float
     required_resources: list[ResourceRequirement]
-    status: PatientStatus = PatientStatus.WAITING
+    consumed_resources: dict
+    status: PatientStatus = PatientStatus.PENDING
     time_waiting: int = 0
     time_admitted: int = 0
     minimum_health_reached: float = field(init=False)
@@ -30,6 +32,7 @@ class Patient:
     def __post_init__(self) -> None:
         self._validate()
         self.minimum_health_reached = self.health_level
+        self.consumed_resources = {r.resource: 0 for r in self.required_resources}
 
     def _validate(self) -> None:
         if not (MIN_HEALTH <= self.health_level <= MAX_HEALTH):
@@ -54,6 +57,10 @@ class Patient:
         return self.status == PatientStatus.WAITING
 
     @property
+    def is_pending(self) -> bool:
+        return self.status == PatientStatus.PENDING
+
+    @property
     def is_finished(self) -> bool:
         return self.status in {
             PatientStatus.DISCHARGED,
@@ -71,6 +78,9 @@ class Patient:
 
     def discharge(self) -> None:
         self.status = PatientStatus.DISCHARGED
+
+    def wait(self) -> None:
+        self.status = PatientStatus.WAITING
 
     def die(self) -> None:
         self.status = PatientStatus.DECEASED
