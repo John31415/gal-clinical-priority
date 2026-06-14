@@ -16,12 +16,12 @@ def normal(mu: float = 0, sigma: float = 1) -> float:
     return mu + z * sigma
 
 
-def gamma(alpha: float = 1) -> float:
-    if alpha <= 0:
-        raise ValueError("Alpha must be greater than 0")
+def gamma(alpha: float = 1, beta: float = 1) -> float:
+    if alpha <= 0 or beta <= 0:
+        raise ValueError("Alpha and Beta must be greater than 0")
     if alpha < 1.0:
         u = random.random()
-        return gamma(alpha + 1) * math.pow(u, 1.0 / alpha)
+        return gamma(alpha + 1, 1) * math.pow(u, 1.0 / alpha) * beta
     d = alpha - 1.0 / 3.0
     c = 1.0 / math.sqrt(9.0 * d)
     while True:
@@ -32,9 +32,9 @@ def gamma(alpha: float = 1) -> float:
         v = v**3
         u = random.random()
         if u < 1.0 - 0.0331 * z**4:
-            return d * v
+            return d * v * beta
         if math.log(u) < 0.5 * z**2 + d * (1.0 - v + math.log(v)):
-            return d * v
+            return d * v * beta
 
 
 def beta(
