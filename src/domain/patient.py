@@ -90,6 +90,6 @@ class Patient:
             f"Patient("
             f"id={self.id}, "
             f"health={self.health_level:.2f}, "
-            f"status={self.status.value}"
+            f"resources={self.required_resources}"
             f")"
         )

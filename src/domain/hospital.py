@@ -51,7 +51,6 @@ class Hospital:
         return (
             f"Hospital("
             f"capacity={self.capacity}, "
-            f"occupied={self.occupied_capacity}, "
-            f"resources={len(self.available_resources)}"
+            f"resources={self.available_resources}"
             f")"
         )
