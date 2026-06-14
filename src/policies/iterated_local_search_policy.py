@@ -7,19 +7,21 @@ import random
 
 class ILSPolicy(PriorityPolicy):
 
+    def __init__(self, max_iterations: int = 5):
+        self.max_iterations = max_iterations
+
     def order_patients(
         self,
         patients: list[Patient],
         hospital: Hospital,
         arrivals: list[Patient] = [],
-        max_iterations: int = 5,
     ) -> list[Patient]:
         for new_patient in arrivals:
             patients = self._add_optimize(
                 patients=patients,
                 new_patient=new_patient,
                 hospital=hospital,
-                max_iterations=max_iterations,
+                max_iterations=self.max_iterations,
             )
         return patients
 
