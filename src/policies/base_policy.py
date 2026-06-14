@@ -10,3 +10,7 @@ class PriorityPolicy(ABC):
         self, patients: list[Patient], hospital: Hospital, arrivals: list[Patient] = []
     ) -> list[Patient]:
         pass
+
+    @abstractmethod
+    def __repr__(self):
+        pass

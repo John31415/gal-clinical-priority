@@ -10,3 +10,6 @@ class SeverityPolicy(PriorityPolicy):
     ) -> list[Patient]:
         patients += arrivals
         return sorted(patients, key=lambda p: p.health_level)
+
+    def __repr__(self):
+        return "Severity Policy"

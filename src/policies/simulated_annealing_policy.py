@@ -50,3 +50,6 @@ class SimAnnealPolicy(PriorityPolicy):
         state = PermState(random_order, f_eval)
         best_state = simulated_annealing(state)
         return [patients[i] for i in best_state.s]
+
+    def __repr__(self):
+        return "Simulated Annealing Policy"

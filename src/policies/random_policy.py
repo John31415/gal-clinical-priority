@@ -13,3 +13,6 @@ class RandomPolicy(PriorityPolicy):
         ordered = list(patients)
         random.shuffle(ordered)
         return ordered
+
+    def __repr__(self):
+        return "Random Policy"
