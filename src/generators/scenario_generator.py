@@ -24,7 +24,12 @@ def get_patients(patient_count: int, shuffle: bool) -> list[Patient]:
     return patients[:patient_count]
 
 
-def generate_scenario(patient_count: int, shuffle_patients: bool = False):
+def generate_scenario(
+    patient_count: int,
+    shuffle_patients: bool = False,
+    mean: float = 0.75,
+    variance: float = 0.5,
+):
     patients = get_patients(patient_count, shuffle_patients)
-    hospital = generate_hospital(patients=patients, mean=0.75, variance=0.5)
+    hospital = generate_hospital(patients=patients, mean=mean, variance=variance)
     return hospital, patients
