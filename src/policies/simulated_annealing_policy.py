@@ -37,7 +37,6 @@ class SimAnnealPolicy(PriorityPolicy):
     ) -> list[Patient]:
         patients += arrivals
         random_order = list(range(len(patients)))
-        random.shuffle(random_order)
 
         def f_eval(permutation: list[int]) -> float:
             return patient_order_evaluation(
