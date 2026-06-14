@@ -6,6 +6,7 @@ from src.policies.simulated_annealing_policy import SimAnnealPolicy
 from src.policies.random_policy import RandomPolicy
 from src.policies.severity_policy import SeverityPolicy
 from src.policies.negligent_policy import NegligentPolicy
+from src.policies.iterated_local_search_policy import ILSPolicy
 from src.domain.hospital import Hospital
 from src.domain.patient import Patient
 from copy import deepcopy
@@ -34,16 +35,22 @@ def simulate_policy(
 
 def main() -> None:
     hospital, patients = generate_scenario(
-        patient_count=50, shuffle_patients=True, mean=1.1, variance=0.05
+        patient_count=100, shuffle_patients=True, mean=1.1, variance=0.05
     )
-    policies = [RandomPolicy(), SeverityPolicy(), NegligentPolicy(), SimAnnealPolicy()]
+    policies = [
+        RandomPolicy(),
+        SeverityPolicy(),
+        NegligentPolicy(),
+        SimAnnealPolicy(),
+        ILSPolicy(),
+    ]
     best_policy = None
     max_lives_saved = 0
     for policy in policies:
         lives_saved = simulate_policy(
             hospital=deepcopy(hospital), patients=deepcopy(patients), policy=policy
         )
-        if lives_saved > max_lives_saved:
+        if lives_saved >= max_lives_saved:
             max_lives_saved = lives_saved
             best_policy = policy
     print(f"\n=== Winner: {best_policy} ===\n")
