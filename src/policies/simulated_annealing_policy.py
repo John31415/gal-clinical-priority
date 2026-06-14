@@ -4,8 +4,9 @@ from src.domain.hospital import Hospital
 from src.domain.patient import Patient
 from src.simulation.basic_simulator import BasicSimulator
 from src.metrics.metrics import simulation_statistics
-import random
+from src.policies.utils import patient_order_evaluation
 from copy import deepcopy
+import random
 
 
 class PermState(State):
@@ -38,14 +39,10 @@ class SimAnnealPolicy(PriorityPolicy):
         random_order = list(range(len(patients)))
         random.shuffle(random_order)
 
-        def f_eval(p: list[int]) -> float:
-            ordered_patients = [patients[i] for i in p]
-            simulator = BasicSimulator(
-                hospital=deepcopy(hospital), patients=deepcopy(ordered_patients)
+        def f_eval(permutation: list[int]) -> float:
+            return patient_order_evaluation(
+                permutation=permutation, patients=patients, hospital=hospital
             )
-            ordered_patients = simulator.run()
-            stats = simulation_statistics(ordered_patients)
-            return stats["lives_saved"] * 1000000 + stats["minimum_health_sum"]
 
         state = PermState(random_order, f_eval)
         best_state = simulated_annealing(state)
