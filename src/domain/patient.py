@@ -23,7 +23,7 @@ class Patient:
     deterioration_rate: float
     improvement_rate: float
     required_resources: list[ResourceRequirement]
-    consumed_resources: dict
+    consumed_resources: dict = field(init=False)
     status: PatientStatus = PatientStatus.PENDING
     time_waiting: int = 0
     time_admitted: int = 0
