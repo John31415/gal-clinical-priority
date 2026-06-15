@@ -36,7 +36,7 @@ def simulate_policy(
 
 def main() -> None:
     hospital, patients = generate_scenario(
-        patient_count=50, shuffle_patients=True, mean=1.1, variance=0.05
+        patient_count=50, shuffle_patients=True, mean=0.9, variance=0.2
     )
     policies = [
         RandomPolicy(),

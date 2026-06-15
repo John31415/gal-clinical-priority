@@ -32,7 +32,7 @@ class PermState(State):
 
 class SimAnnealPolicy(PriorityPolicy):
 
-    def __init__(self, t0: float = 100.0, decay: float = 0.9, t_min: float = 1.0):
+    def __init__(self, t0: float = 100.0, decay: float = 0.99, t_min: float = 1.0):
         self.t0 = t0
         self.decay = decay
         self.t_min = t_min
