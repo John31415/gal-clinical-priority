@@ -10,9 +10,9 @@ class SAILSPolicy(PriorityPolicy):
     def __init__(
         self,
         t0: float = 100.0,
-        decay: float = 0.9,
+        decay: float = 0.99,
         t_min: float = 1.0,
-        max_iterations: int = 1,
+        max_iterations: int = 50,
     ):
         self.t0 = t0
         self.decay = decay

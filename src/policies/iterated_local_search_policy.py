@@ -7,7 +7,7 @@ import random
 
 class ILSPolicy(PriorityPolicy):
 
-    def __init__(self, max_iterations: int = 5):
+    def __init__(self, max_iterations: int = 50):
         self.max_iterations = max_iterations
 
     def order_patients(
@@ -34,14 +34,16 @@ class ILSPolicy(PriorityPolicy):
             permutation=order, patients=local_patients, hospital=hospital
         )
         best_order = list(order)
-        for i in range(len(order) - 1, 0, -1):
-            order[i], order[i - 1] = order[i - 1], order[i]
+        for _ in range(self.max_iterations):
+            rand_pos = random.randint(0, len(patients))
+            order = list(range(len(patients)))
+            order.insert(rand_pos, len(patients))
             cost = patient_order_evaluation(
                 permutation=order, patients=local_patients, hospital=hospital
             )
             if cost > best_cost:
                 best_cost = cost
-                best_order = order.copy()
+                best_order = order
         return [local_patients[i] for i in best_order]
 
     def _hill_climbing(
