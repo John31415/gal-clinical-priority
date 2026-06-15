@@ -1,0 +1,998 @@
+\documentclass[12pt,a4paper]{article}
+
+% -----------------------------
+% Packages
+% -----------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{csquotes}
+\usepackage{listings}
+
+% -----------------------------
+% Page layout
+% -----------------------------
+\geometry{
+    left=2.5cm,
+    right=2.5cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+\setstretch{1.15}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue,
+    pdftitle={Informe Técnico - Proyecto Final},
+    pdfauthor={Tu nombre}
+}
+
+% -----------------------------
+% Header / Footer
+% -----------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Proyecto Final de Inteligencia Artificial y Simulación}
+\rhead{Informe Técnico}
+\cfoot{\thepage}
+
+% -----------------------------
+% Metadata
+% -----------------------------
+\title{Informe Técnico del Proyecto Final\\\large Priorización de Casos Clínicos Bajo Recursos Limitados}
+\author{Tu nombre}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% =========================================================
+% 1. Introducción / Contexto (opcional pero recomendable)
+% =========================================================
+\section{Introducción}
+
+La gestión eficiente de recursos hospitalarios constituye uno de los principales desafíos en los sistemas de salud, 
+especialmente en contextos donde la disponibilidad de camas, medicamentos, equipos médicos y personal especializado es limitada. 
+En estas situaciones, la decisión sobre qué pacientes deben ser atendidos primero puede tener un impacto significativo tanto 
+en la cantidad de vidas salvadas como en la calidad de la atención brindada.
+
+Este trabajo aborda el problema de la priorización de casos clínicos bajo restricciones de recursos mediante 
+la combinación de técnicas de Inteligencia Artificial y Simulación. 
+El objetivo consiste en diseñar un sistema capaz de determinar dinámicamente el orden de atención de los pacientes 
+que llegan a un hospital, considerando la evolución temporal de su estado de salud, la disponibilidad de recursos y 
+la incertidumbre inherente a los procesos clínicos.
+
+% =========================================================
+% 2. Descripción del problema
+% =========================================================
+\section{Descripción del problema}
+
+Los sistemas hospitalarios operan frecuentemente bajo restricciones de recursos que impiden atender de manera inmediata a 
+todos los pacientes que requieren asistencia médica. 
+La disponibilidad limitada de camas, medicamentos, equipos y personal especializado obliga a establecer 
+mecanismos de priorización que permitan utilizar dichos recursos de la forma más eficiente posible.
+
+En este contexto, se considera un hospital que recibe pacientes a lo largo del tiempo. 
+Cada paciente presenta un estado de salud inicial, una velocidad de deterioro cuando no recibe tratamiento y 
+una capacidad de recuperación cuando es admitido y atendido. 
+Además, cada caso requiere determinados recursos médicos cuya disponibilidad es limitada dentro del hospital.
+
+La admisión de pacientes está restringida tanto por la capacidad física del hospital como por la disponibilidad de 
+los recursos necesarios para llevar a cabo el tratamiento. 
+Cuando no es posible admitir inmediatamente a todos los pacientes que han llegado, 
+estos permanecen en una cola de espera donde continúan evolucionando clínicamente. 
+Durante este período, su estado de salud puede deteriorarse progresivamente, incrementando el riesgo de complicaciones o 
+fallecimiento.
+
+El problema consiste en determinar dinámicamente el orden en que los pacientes deben ser admitidos para recibir tratamiento. 
+Dicha decisión debe considerar simultáneamente la evolución temporal de los pacientes, 
+la disponibilidad cambiante de recursos y la incertidumbre asociada a la respuesta de cada individuo al tratamiento.
+
+La calidad de una política de priorización no puede evaluarse únicamente a partir de la información inicial de los pacientes, 
+ya que el resultado final depende de la interacción entre múltiples factores que evolucionan a lo largo del tiempo. 
+Por esta razón, la evaluación de una solución requiere simular el comportamiento completo del sistema hospitalario, 
+incluyendo la llegada de pacientes, la utilización de recursos, la evolución clínica de los casos y 
+la liberación de capacidad hospitalaria.
+
+El objetivo del sistema es encontrar estrategias de admisión que maximicen el impacto total de la atención médica. 
+Para ello se adopta un criterio de optimización lexicográfico compuesto por dos objetivos jerárquicos. 
+En primer lugar, se busca maximizar la cantidad de pacientes que sobreviven al finalizar la simulación. 
+En segundo lugar, entre todas las soluciones que producen la misma cantidad de supervivientes, 
+se selecciona aquella que minimiza el sufrimiento total experimentado por los pacientes.
+
+El sufrimiento individual de un paciente se define como el menor nivel de salud alcanzado durante toda su evolución 
+dentro del sistema. 
+A partir de esta definición, el sufrimiento total se obtiene agregando el sufrimiento individual de todos 
+los pacientes considerados en la simulación. 
+De esta forma, el sistema no solo busca salvar la mayor cantidad posible de vidas, 
+sino también evitar que los pacientes alcancen estados críticos de deterioro mientras esperan o reciben atención.
+
+% =========================================================
+% 3. Modelado formal
+% =========================================================
+\section{Modelado formal}
+
+\subsection{Conjunto de pacientes}
+
+Sea
+
+\[
+P = \{p_1,p_2,\ldots,p_n\}
+\]
+
+el conjunto de pacientes que pueden llegar al hospital durante la simulación.
+
+Cada paciente \(p_i\) se caracteriza mediante la tupla:
+
+\[
+p_i =
+\left(
+h_i^0,
+d_i,
+r_i,
+R_i
+\right)
+\]
+
+donde:
+
+\begin{itemize}
+    \item \(h_i^0 \in [1,10]\) es el nivel de salud inicial.
+    \item \(d_i \in [1,10]\) es la tasa de deterioro.
+    \item \(r_i \in [1,10]\) es la tasa de recuperación.
+    \item \(R_i\) es el conjunto de recursos requeridos para su tratamiento.
+\end{itemize}
+
+Durante la simulación cada paciente puede encontrarse en uno de los siguientes estados:
+
+\[
+\{\texttt{pending},
+\texttt{waiting},
+\texttt{admitted},
+\texttt{discharged},
+\texttt{deceased}\}
+\]
+
+correspondientes a espera, ingreso, alta médica y fallecimiento.
+
+\subsection{Recursos del hospital}
+
+Sea
+
+\[
+\mathcal{R} =
+\{r_1,r_2,\ldots,r_m\}
+\]
+
+el conjunto de tipos de recursos disponibles en el hospital.
+
+Cada recurso \(r_j\) posee una disponibilidad inicial:
+
+\[
+A_j \ge 0
+\]
+
+que representa la cantidad total disponible para ser utilizada durante la simulación.
+
+Además, el hospital dispone de una capacidad máxima de atención:
+
+\[
+C \in \mathbb{N}
+\]
+
+que indica la cantidad máxima de pacientes que pueden permanecer ingresados simultáneamente.
+
+La capacidad y disponibilidad de recursos se generan sintéticamente a partir de las necesidades agregadas de los pacientes utilizando factores de holgura aleatorios que permiten construir escenarios con distintos niveles de escasez.
+
+\subsection{Variables de estado}
+
+Sea \(t\) un instante discreto de simulación.
+
+El estado de salud de un paciente \(p_i\) en el instante \(t\) se representa mediante:
+
+\[
+h_i(t)\in[1,10]
+\]
+
+donde:
+
+\[
+1
+\]
+
+representa el peor estado posible y corresponde al fallecimiento, mientras que
+
+\[
+10
+\]
+
+representa la recuperación completa y genera el alta médica.
+
+Para cada paciente se registra además:
+
+\[
+m_i =
+\min_t h_i(t)
+\]
+
+que representa el nivel mínimo de salud alcanzado durante toda su evolución.
+
+Esta magnitud será utilizada posteriormente para medir el sufrimiento individual.
+
+\subsection{Evolución temporal de los pacientes}
+
+La simulación avanza mediante pasos discretos de tiempo.
+
+Los pacientes llegan al sistema de acuerdo con un proceso de llegadas exponencial. Si \(T_i\) representa el instante de llegada del paciente \(p_i\), entonces los tiempos entre llegadas siguen una distribución exponencial:
+
+\[
+\Delta T_i
+\sim
+Exp(\lambda)
+\]
+
+donde \(\lambda\) está determinado por el tiempo medio entre llegadas configurado en la simulación.
+
+\subsubsection{Paciente en espera}
+
+Cuando un paciente no ha sido admitido en el hospital, su estado de salud disminuye según:
+
+\[
+h_i(t+1)
+=
+h_i(t)
+-
+D_i(t)
+\]
+
+donde
+
+\[
+D_i(t)
+=
+\frac{
+\min(10,\max(1,d_i \varepsilon_t))
+}{10}
+\]
+
+y
+
+\[
+\varepsilon_t
+\sim
+\mathcal{N}(1,\sigma^2)
+\]
+
+es un factor aleatorio que introduce incertidumbre clínica.
+
+Si
+
+\[
+h_i(t)\le 1
+\]
+
+el paciente fallece.
+
+\subsubsection{Paciente ingresado}
+
+Cuando un paciente se encuentra ingresado y recibe tratamiento, su salud evoluciona según:
+
+\[
+h_i(t+1)
+=
+h_i(t)
++
+I_i(t)
+\]
+
+donde
+
+\[
+I_i(t)
+=
+\frac{
+\min(10,\max(1,r_i \varepsilon_t))
+}{20}
+\]
+
+y nuevamente
+
+\[
+\varepsilon_t
+\sim
+\mathcal{N}(1,\sigma^2).
+\]
+
+Si
+
+\[
+h_i(t)\ge 10
+\]
+
+el paciente recibe el alta médica.
+
+\subsection{Función objetivo}
+
+La calidad de una solución se evalúa mediante un criterio lexicográfico compuesto por dos objetivos jerárquicos.
+
+Sea
+
+\[
+S
+\]
+
+la cantidad total de pacientes que sobreviven al finalizar la simulación.
+
+El objetivo principal consiste en:
+
+\[
+\max S
+\]
+
+Entre todas las soluciones con igual valor de \(S\), se selecciona aquella que minimiza el sufrimiento total.
+
+El sufrimiento individual del paciente \(p_i\) se define como:
+
+\[
+m_i
+=
+\min_t h_i(t)
+\]
+
+y el sufrimiento total como:
+
+\[
+F
+=
+\sum_{i=1}^{n}
+(10-m_i)
+\]
+
+De esta forma se penalizan las soluciones que permiten que los pacientes alcancen estados críticos de salud.
+
+El problema completo se expresa como:
+
+\[
+\max (S,-F)
+\]
+
+bajo orden lexicográfico.
+
+\subsection{Restricciones}
+
+Toda solución factible debe satisfacer simultáneamente:
+
+\begin{enumerate}
+    \item Restricción de capacidad hospitalaria:
+
+    \[
+    |\mathcal{A}(t)| \le C
+    \]
+
+    donde \(\mathcal{A}(t)\) es el conjunto de pacientes ingresados en el instante \(t\).
+
+    \item Restricciones de recursos:
+
+    \[
+    u_j(t)
+    \le
+    A_j(t)
+    \]
+
+    para todo recurso \(r_j\), donde \(u_j(t)\) representa la cantidad consumida.
+
+    \item Restricción de admisión:
+
+    Un paciente solo puede ser admitido si existe capacidad disponible y todos los recursos requeridos para iniciar su tratamiento se encuentran disponibles.
+
+\end{enumerate}
+
+\subsection{Formulación del problema}
+
+El problema puede interpretarse como la búsqueda de una política de priorización que determine el orden de atención de los pacientes a medida que estos llegan al sistema.
+
+\subsubsection{Definiciones}
+
+Sea
+
+\[
+Q(t)
+\]
+
+la cola de pacientes en espera en el instante \(t\).
+
+Una política de priorización es una función:
+
+\[
+\pi :
+Q(t)
+\rightarrow
+Q'(t)
+\]
+
+que reordena la cola antes de cada decisión de admisión.
+
+\subsubsection{Notación}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Símbolo & Descripción \\
+\midrule
+\(P\) & Conjunto de pacientes \\
+\(C\) & Capacidad hospitalaria \\
+\(h_i(t)\) & Salud del paciente \(i\) en el tiempo \(t\) \\
+\(d_i\) & Tasa de deterioro \\
+\(r_i\) & Tasa de recuperación \\
+\(m_i\) & Salud mínima alcanzada \\
+\(S\) & Cantidad de supervivientes \\
+\(F\) & Sufrimiento total \\
+\(Q(t)\) & Cola de espera \\
+\(\pi\) & Política de priorización \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Interpretación del modelo}
+
+Bajo esta formulación, el problema se convierte en un problema de optimización dinámica y estocástica. Las decisiones de admisión modifican la evolución futura del sistema, mientras que la incertidumbre clínica introduce variabilidad en los resultados obtenidos. Debido a que la calidad de una política depende de la interacción entre llegadas, disponibilidad de recursos y evolución de los pacientes, la evaluación de una solución requiere ejecutar la simulación completa del sistema hospitalario y analizar sus resultados finales.
+
+% =========================================================
+% 4. Dataset
+% =========================================================
+\section{Dataset utilizado}
+
+El dataset utilizado en este trabajo fue construido a partir de una base pública de prescripción de medicamentos 
+asociada a enfermedades, y posteriormente transformado en un conjunto de pacientes sintéticos con información estructurada 
+y narrativa clínica generada mediante un modelo de lenguaje. 
+Este enfoque permitió disponer de casos diversos, realistas y compatibles con el problema de priorización clínica 
+bajo recursos limitados.
+
+\subsection{Origen del dataset}
+
+La fuente inicial del proyecto fue descargada desde Kaggle, 
+específicamente el dataset \emph{Drug Prescription to Disease Dataset}. 
+El archivo original contiene 14\,682 filas y modela relaciones del tipo enfermedad--medicamento, 
+en las que cada registro indica qué fármaco ha sido utilizado para tratar una determinada patología.
+
+A partir de ese CSV original se construyó una representación auxiliar denominada \texttt{drug2patient}, 
+la cual invierte la relación inicial y agrupa, para cada medicamento, el conjunto de enfermedades asociadas. 
+Esta transformación resultó útil para enriquecer la generación de pacientes sintéticos y asegurar coherencia entre 
+diagnóstico y tratamiento.
+
+\subsection{Estructura general}
+
+El dataset final no se utiliza directamente en su forma tabular original, 
+sino como punto de partida para generar pacientes sintéticos. La estructura general del proceso es la siguiente:
+
+\[
+\text{enfermedad + edad + triage} \rightarrow \text{narrativa clínica} \rightarrow \text{extracción JSON} \rightarrow \text{paciente estructurado}
+\]
+
+En la implementación, cada paciente se genera primero como un objeto básico con atributos mínimos, 
+luego se expande su descripción clínica mediante un LLM y, finalmente, 
+se extraen los campos estructurados que alimentan el simulador y el algoritmo de priorización.
+
+\subsection{Campos de los pacientes}
+
+Cada paciente del dataset final contiene los siguientes campos:
+
+\begin{itemize}
+    \item \texttt{id}: identificador único del paciente.
+    \item \texttt{age}: edad del paciente.
+    \item \texttt{diagnosis}: descripción clínica generada automáticamente en lenguaje natural.
+    \item \texttt{health\_level}: nivel inicial de salud, en el rango \([1,10]\).
+    \item \texttt{deterioration\_rate}: tasa de deterioro clínico, en el rango \([1,10]\).
+    \item \texttt{improvement\_rate}: tasa de mejoría esperada con tratamiento, en el rango \([1,10]\).
+    \item \texttt{drugs}: lista de medicamentos asociados al caso, con sus dosis numéricas.
+\end{itemize}
+
+Además, a nivel interno del sistema, cada paciente queda asociado a los recursos requeridos para su tratamiento, 
+lo cual permite modelar la disponibilidad hospitalaria y las restricciones de admisión.
+
+\subsection{Proceso de generación}
+
+El proceso de generación se divide en varias etapas.
+
+En primer lugar, se construye un paciente básico mediante un generador aleatorio controlado. En esta etapa se selecciona:
+
+\begin{itemize}
+    \item la edad, usando una distribución beta ajustada al rango \([0,100]\);
+    \item el triage, elegido aleatoriamente entre \texttt{Red}, \texttt{Yellow} y \texttt{Green};
+    \item la enfermedad principal, tomada desde un conjunto de patologías frecuentes;
+    \item los medicamentos asociados a dicha enfermedad, obtenidos mediante una función de mapeo entre enfermedad y tratamiento.
+\end{itemize}
+
+Posteriormente, ese paciente básico se envía a un LLM mediante un prompt especializado para 
+generar una narrativa clínica realista. 
+Esta narrativa incorpora la edad, el triage, la enfermedad y los medicamentos requeridos, 
+manteniendo coherencia semántica entre todos los elementos.
+
+A continuación, la narrativa generada se utiliza como entrada de un segundo prompt 
+que obliga al LLM a devolver un objeto JSON con los atributos estructurados del paciente. 
+En esta etapa el modelo estima el nivel de salud, la tasa de deterioro, la tasa de mejoría y 
+la lista de medicamentos con sus dosis.
+
+Finalmente, los datos básicos del paciente, la narrativa clínica y la salida JSON del LLM 
+se combinan en un único registro estructurado. Repetido este proceso para múltiples instancias, 
+se obtiene el dataset final de pacientes.
+
+\subsection{Justificación de validez}
+
+El dataset construido cumple con las condiciones del problema por varias razones. 
+En primer lugar, cada paciente contiene información estructurada y una descripción textual, 
+lo que permite que el LLM cumpla un rol funcional real en el sistema y no meramente decorativo. 
+En segundo lugar, la presencia de medicamentos y dosis introduce restricciones concretas de recursos, 
+generando escenarios donde la priorización no es trivial.
+
+Además, el uso de una base pública de enfermedades y medicamentos reduce la arbitrariedad de los casos sintéticos 
+y favorece la coherencia entre diagnóstico y tratamiento. La aleatoriedad controlada en edad, triage y selección 
+de patología produce diversidad clínica suficiente para construir instancias difíciles, en las que el algoritmo debe 
+decidir entre pacientes con distintos niveles de gravedad, riesgo y demanda de recursos.
+
+Por último, la estructura obtenida es compatible con la simulación de eventos discretos 
+y con la función objetivo definida para el proyecto, ya que cada caso puede evaluarse según su evolución temporal 
+y el impacto clínico alcanzado bajo limitaciones hospitalarias.
+
+% =========================================================
+% 5. Diseño del algoritmo
+% =========================================================
+\section{Diseño del algoritmo}
+
+\subsection{Visión general}
+
+El algoritmo propuesto se implementa como una simulación de eventos discretos en la que 
+el hospital atiende pacientes bajo restricciones de capacidad y recursos. 
+La simulación avanza en pasos de tiempo, durante los cuales pueden ocurrir tres procesos principales: 
+la llegada de nuevos pacientes, la admisión de pacientes desde la cola de espera y 
+la evolución clínica de los pacientes ya ingresados o aún en espera.
+
+La solución se organiza de forma modular para separar claramente el modelo del dominio, 
+la dinámica clínica, la simulación temporal y las políticas de priorización. 
+Esta separación permite comparar distintas estrategias de atención sin modificar la lógica central del sistema.
+
+\subsection{Arquitectura de la solución}
+
+La implementación se estructura en tres niveles principales.
+
+\begin{itemize}
+    \item \textbf{Dominio}: define las entidades fundamentales del problema, principalmente \texttt{Patient}, \texttt{Hospital} y \texttt{Resource}.
+    \item \textbf{Dinámica}: modela la evolución de la salud y el consumo progresivo de recursos mediante funciones estocásticas.
+    \item \textbf{Simulación}: coordina el paso del tiempo, las llegadas, la cola de espera, la admisión y la evolución clínica.
+    \item \textbf{Políticas}: implementa los distintos criterios para reordenar pacientes antes de la admisión.
+\end{itemize}
+
+La clase abstracta \texttt{BaseSimulator} encapsula la lógica común de simulación, 
+mientras que \texttt{BasicSimulator} e \texttt{IntelligentSimulator} concretan dos modos de ejecución distintos. 
+El primero asume que todos los pacientes ya están en la cola inicial; el segundo simula llegadas en el tiempo y 
+reordena la cola usando una política de priorización.
+
+\subsection{Procesamiento de llegadas}
+
+En el simulador inteligente, los pacientes no poseen un tiempo de llegada almacenado en su estructura de datos. 
+En su lugar, el propio simulador genera los instantes de llegada de forma interna usando una distribución exponencial, 
+lo que permite representar un proceso estocástico de arribos.
+
+Al inicio de la simulación se construye una lista de llegadas programadas. 
+En cada paso temporal, el simulador revisa si existen pacientes cuyo tiempo de llegada ha sido alcanzado y 
+los incorpora a la cola de espera. 
+De esta forma, la llegada de pacientes se modela como un evento discreto independiente de la definición del 
+paciente en el dominio.
+
+Cuando la política es \texttt{None}, no se simulan llegadas; 
+todos los pacientes se consideran disponibles desde el comienzo y se insertan directamente en la cola inicial.
+
+\subsection{Construcción y reordenamiento de la cola}
+
+La cola de espera contiene a los pacientes que ya han llegado al hospital pero aún no han sido admitidos. 
+En cada iteración de la simulación, esta cola puede reordenarse según la política activa.
+
+La interfaz \texttt{PriorityPolicy} define un método \texttt{order\_patients} que recibe la cola actual, 
+el estado del hospital y, opcionalmente, la lista de nuevos pacientes llegados en ese instante. 
+La política devuelve una nueva secuencia ordenada que será utilizada para intentar admisiones.
+
+Se implementan varias políticas de comparación, entre ellas:
+
+\begin{itemize}
+    \item \textbf{RandomPolicy}: orden aleatorio de la cola.
+    \item \textbf{SeverityPolicy}: prioridad al paciente con menor nivel de salud.
+    \item \textbf{NegligentPolicy}: prioridad inversa a la severidad.
+    \item \textbf{SimAnnealPolicy}: búsqueda por recocido simulado sobre permutaciones.
+    \item \textbf{ILSPolicy}: búsqueda local iterada.
+    \item \textbf{SAILSPolicy}: combinación híbrida de búsqueda local iterada y recocido simulado.
+\end{itemize}
+
+De esta manera, el sistema puede comparar estrategias simples contra heurísticas y metaheurísticas más sofisticadas.
+
+\subsection{Política de admisión}
+
+Una vez ordenada la cola, el hospital intenta admitir siempre al primer paciente. 
+Si dicho paciente no puede ser admitido por falta de capacidad o por insuficiencia de recursos, 
+entonces no se considera a ningún otro paciente durante ese ciclo.
+
+Esta decisión simplifica el mecanismo de admisión y refuerza el carácter secuencial del problema. 
+En particular, la cola no se trata como una lista de candidatos intercambiables en cada instante, 
+sino como una secuencia priorizada cuya cabeza representa la mejor opción disponible.
+
+La admisión en sí no descuenta de inmediato el consumo progresivo de recursos. 
+Solo verifica que el paciente puede ser incorporado al hospital. 
+El consumo real de recursos ocurre posteriormente, durante la evolución clínica.
+
+\subsection{Evolución clínica y consumo de recursos}
+
+Cada paciente ingresado evoluciona durante la simulación de forma estocástica. 
+La salud del paciente puede mejorar si recibe tratamiento o deteriorarse si no dispone de los recursos necesarios.
+
+Las funciones \texttt{compute\_deterioration} y \texttt{compute\_improvement} introducen ruido aleatorio 
+mediante una distribución normal centrada en 1.0. A partir de estas funciones se actualiza el estado del 
+paciente de la siguiente manera:
+
+\begin{itemize}
+    \item si el paciente está en espera, su salud disminuye;
+    \item si el paciente está ingresado y recibe tratamiento, su salud mejora;
+    \item si el paciente alcanza el nivel mínimo de salud, fallece;
+    \item si alcanza el nivel máximo de salud, recibe el alta.
+\end{itemize}
+
+El consumo de medicamentos es progresivo. Cada paciente posee una cantidad total requerida de recursos, 
+y en cada paso temporal se consume solo la parte no administrada previamente. 
+Este consumo se calcula a partir de la cantidad pendiente y del estado actual del paciente, 
+de modo que el tratamiento se distribuye a lo largo del tiempo en lugar de consumirse de una sola vez.
+
+Si el hospital no dispone del recurso necesario para cubrir el consumo de un paciente en un instante dado, 
+el tratamiento no puede aplicarse completamente y el paciente puede deteriorarse. 
+Este mecanismo introduce competencia real entre pacientes por recursos limitados.
+
+\subsection{Estrategia de búsqueda u optimización}
+
+El objetivo del algoritmo no es únicamente simular el sistema, 
+sino encontrar una política de atención que produzca una solución cercana al óptimo. 
+Para ello se emplean diferentes estrategias de priorización.
+
+Las políticas simples actúan como baselines. Ordenan a los pacientes por criterios directos como salud actual o aleatoriedad. 
+Las políticas avanzadas utilizan búsquedas sobre el espacio de permutaciones, 
+donde cada solución candidata representa un posible orden de atención.
+
+En el caso de \texttt{SimAnnealPolicy}, se modela una permutación como un estado de un problema de optimización y 
+se exploran vecinos generados mediante intercambios aleatorios de posiciones. 
+La función de energía se define como el negativo de la evaluación de la secuencia, 
+de forma que el recocido simulado busca minimizar dicha energía, es decir, maximizar la calidad de la solución.
+
+En el caso de \texttt{ILSPolicy}, se modela una permutación como la secuencia ordenada de atención de los pacientes 
+y se emplea un enfoque heurístico iterativo estructurado en tres fases. 
+En primer lugar, se utiliza un mecanismo de inserción codiciosa (\texttt{greedy insertion}) para posicionar 
+de manera inicial a cada nuevo paciente conforme arriba al sistema. Posteriormente, se aplica una búsqueda 
+local basada en el algoritmo de escalada de colinas (\texttt{hill climbing}) mediante el intercambio de posiciones 
+adyacentes para refinar el ordenamiento hasta converger en un óptimo local. Para escapar de estos máximos locales y 
+explorar nuevas regiones del espacio de soluciones, el algoritmo introduce una fase de perturbación aleatoria —o sacudida— 
+en la secuencia, repitiendo el ciclo de optimización local de forma controlada. 
+La función de evaluación determina la calidad de cada ordenamiento, orientando al \texttt{ILS} hacia la configuración que maximice 
+el rendimiento global del sistema de salud y, por consiguiente, la cantidad de pacientes salvados.
+
+La política \texttt{SAILSPolicy} combina una mejora local iterada con recocido simulado, 
+lo que permite refinar soluciones iniciales y escapar de óptimos locales. 
+Esta estrategia híbrida resulta especialmente útil cuando el espacio de búsqueda es grande y la evaluación 
+exacta de todas las permutaciones es inviable.
+
+\subsection{Complejidad computacional}
+
+La complejidad del algoritmo depende del número de pacientes, del número de pasos de simulación y del tipo de política utilizada.
+
+\subsubsection{Componentes deterministas}
+
+Los componentes deterministas incluyen la admisión del primer paciente factible de la cola, 
+la actualización del estado del hospital y la verificación de recursos. 
+Si la cola contiene \(n\) pacientes y cada paciente requiere revisar un número \(m\) de recursos, 
+una admisión puede realizarse en tiempo proporcional a \(O(m)\), 
+mientras que el reordenamiento de la cola depende de la política seleccionada.
+
+\subsubsection{Componentes estocásticos}
+
+Los componentes estocásticos aparecen en la generación de llegadas, en la evolución clínica y en las funciones de deterioro y 
+mejoría. Aunque no incrementan necesariamente la complejidad asintótica, sí obligan a repetir las simulaciones varias veces 
+para obtener resultados estables y representativos.
+
+\subsubsection{Estrategia de mejora local}
+
+Cuando se utilizan metaheurísticas, la complejidad total aumenta por la necesidad de evaluar múltiples permutaciones candidatas. 
+Si cada evaluación requiere una simulación completa, el costo computacional puede ser elevado. 
+Para mitigar este problema, la búsqueda local se aplica sobre instancias moderadas o mediante un número controlado de iteraciones.
+
+En términos prácticos, esto permite explorar soluciones cercanas al óptimo sin realizar una búsqueda exhaustiva del 
+espacio de permutaciones, que sería factorial en el número de pacientes. La combinación de simulación, heurísticas y 
+metaheurísticas ofrece un compromiso adecuado entre calidad de la solución y costo computacional.
+
+% =========================================================
+% 6. Rol del LLM
+% =========================================================
+\section{Rol del LLM en el sistema}
+
+El modelo de lenguaje desempeña un papel fundamental en la construcción del dataset utilizado por el sistema. 
+Su función principal consiste en transformar información clínica básica y estructurada en descripciones médicas realistas, 
+y posteriormente extraer de dichas descripciones los atributos cuantitativos necesarios para la simulación.
+
+En una primera etapa, el LLM recibe como entrada la edad del paciente, el nivel de triage, la enfermedad principal y 
+los medicamentos asociados al tratamiento. 
+A partir de esta información genera una narrativa clínica coherente en lenguaje natural que describe el estado del paciente y 
+su tratamiento.
+
+Posteriormente, esa narrativa es procesada nuevamente por el LLM para obtener una representación estructurada en formato JSON. 
+En esta fase el modelo estima el nivel inicial de salud (\texttt{health\_level}), 
+la tasa de deterioro (\texttt{deterioration\_rate}), la tasa de mejoría (\texttt{improvement\_rate}) y 
+extrae los medicamentos junto con sus dosis correspondientes.
+
+De esta forma, el LLM actúa como un mecanismo de enriquecimiento semántico y extracción de conocimiento, 
+permitiendo convertir información clínica básica en instancias completas compatibles con el simulador y 
+con el problema de optimización planteado.
+
+% =========================================================
+% 7. Metodología experimental
+% =========================================================
+\section{Metodología experimental}
+
+El proyecto fue evaluado mediante simulaciones repetidas sobre distintas instancias sintéticas del problema, 
+con el objetivo de comparar el comportamiento de varias políticas de priorización bajo diferentes niveles de demanda y 
+disponibilidad de recursos. 
+La metodología experimental se diseñó para verificar no solo la calidad de la solución obtenida, 
+sino también su costo computacional y su estabilidad frente a cambios en la instancia.
+
+\subsection{Diseño experimental}
+
+El diseño experimental se basó en la comparación de varias configuraciones de atención sobre un mismo conjunto de pacientes 
+y un mismo hospital sintético. 
+Para cada instancia se ejecutó el simulador completo con distintas políticas, 
+y luego se compararon los resultados obtenidos según las métricas definidas para el problema.
+
+Las políticas evaluadas fueron:
+
+\begin{itemize}
+    \item \textbf{Random Policy}: orden aleatorio de los pacientes.
+    \item \textbf{Severity Policy}: priorización por menor nivel de salud.
+    \item \textbf{Negligent Policy}: priorización inversa a la severidad.
+    \item \textbf{Simulated Annealing Policy}: optimización por recocido simulado.
+    \item \textbf{Iterated Local Search Policy}: mejora local iterada.
+    \item \textbf{Hybrid Policy}: combinación de recocido simulado e iterated local search.
+\end{itemize}
+
+Estas configuraciones permitieron comparar estrategias muy simples contra métodos metaheurísticos más costosos, 
+pero potencialmente más cercanos al óptimo.
+
+\subsection{Instancias de prueba}
+
+Se generaron varias instancias de prueba con tamaños distintos, a fin de evaluar el comportamiento del sistema 
+tanto en escenarios pequeños como en escenarios más exigentes. En particular, se realizaron experimentos con:
+
+\begin{itemize}
+    \item 45 pacientes;
+    \item 90 pacientes;
+    \item 180 pacientes.
+\end{itemize}
+
+Además, para analizar el efecto de la escasez de recursos y la severidad promedio de los casos, 
+se utilizaron distintas configuraciones del generador de hospitales, 
+variando los parámetros \texttt{mean} y \texttt{variance}. 
+Esto permitió construir escenarios con mayor o menor holgura en capacidad y recursos.
+
+\subsection{Configuraciones comparadas}
+
+Para cada instancia se ejecutaron las mismas políticas de priorización, manteniendo constantes los datos de entrada y 
+variando únicamente el criterio de ordenación o búsqueda. 
+En el caso de las metaheurísticas, también se ajustaron sus parámetros internos, como la temperatura inicial, 
+el factor de decaimiento y el número máximo de iteraciones.
+
+Los parámetros utilizados en cada corrida se registraron explícitamente para asegurar la reproducibilidad de los experimentos. 
+De esta forma, fue posible comparar tanto la calidad de la solución como el tiempo requerido por cada estrategia.
+
+\subsection{Métricas empleadas}
+
+La evaluación de cada política se realizó mediante las siguientes métricas:
+
+\begin{itemize}
+    \item \textbf{Cantidad de vidas salvadas}: número de pacientes que alcanzaron el alta médica.
+    \item \textbf{Número de muertes}: cantidad de pacientes que fallecieron durante la simulación.
+    \item \textbf{Sufrimiento total}: suma de los niveles mínimos de salud alcanzados por todos los pacientes.
+    \item \textbf{Tiempo de simulación}: duración total del proceso simulado en instantes discretos.
+    \item \textbf{Tiempo de ejecución}: tiempo real de cómputo requerido por cada política.
+\end{itemize}
+
+Dado que el objetivo del problema es lexicográfico, la métrica principal fue la cantidad de vidas salvadas; 
+en caso de empate, se utilizó el sufrimiento total como criterio de desempate.
+
+\subsection{Procedimiento de evaluación}
+
+Cada experimento siguió el mismo procedimiento:
+
+\begin{enumerate}
+    \item Se generó una instancia del problema con un número fijo de pacientes.
+    \item Se construyó el hospital sintético con capacidad y recursos determinados por el generador.
+    \item Se ejecutó la simulación con cada una de las políticas definidas.
+    \item Se registraron las métricas finales de cada corrida.
+    \item Se compararon los resultados y se seleccionó la política ganadora según el criterio lexicográfico.
+\end{enumerate}
+
+Para las políticas metaheurísticas, la evaluación de una permutación se realizó mediante simulación completa, 
+ya que la evolución de los pacientes es estocástica y no puede estimarse con precisión a partir del orden inicial únicamente.
+
+\subsubsection{Parámetros del simulador}
+
+En los experimentos realizados se utilizaron configuraciones con distintos valores del tiempo medio entre llegadas, 
+así como diferentes factores de holgura para capacidad y recursos del hospital. 
+En particular, se evaluaron escenarios con \texttt{mean} igual a 1.0, 1.1 y 1.2, y varianza igual a 0.0, 0.5 y 0.7, respectivamente. 
+Estos valores permitieron estudiar cómo cambia el desempeño de las políticas cuando el sistema pasa de condiciones más holgadas a condiciones más restrictivas.
+
+\subsubsection{Baselines}
+
+Las políticas \texttt{Random} y \texttt{Negligent} funcionaron como referencias de bajo desempeño, 
+mientras que \texttt{Severity} representó una heurística clínica intuitiva. 
+Las políticas \texttt{Simulated Annealing}, \texttt{Iterated Local Search} y la política híbrida representaron estrategias 
+de optimización más avanzadas.
+
+\subsection{Análisis de los resultados}
+
+Los resultados obtenidos muestran un patrón consistente: las políticas metaheurísticas superan en general a 
+las heurísticas simples en términos de vidas salvadas y, en muchos casos, también en sufrimiento total.
+
+En la instancia de 90 pacientes, la política híbrida obtuvo el mejor desempeño, alcanzando 25 vidas salvadas, 
+65 muertes y un sufrimiento total de 135.0. 
+En la instancia de 45 pacientes, nuevamente la política híbrida obtuvo el mayor número de vidas salvadas, 
+con 15 pacientes dados de alta. En la instancia de 180 pacientes con parámetros estándar, 
+el recocido simulado obtuvo el mejor resultado en cantidad de vidas salvadas, con 47, superando a las políticas simples y 
+a la búsqueda local iterada.
+
+Cuando se aumentó la holgura del hospital mediante los parámetros \texttt{mean=1.1} y \texttt{variance=0.5}, 
+la política híbrida volvió a ser la mejor, con 87 vidas salvadas. 
+En el escenario más favorable de \texttt{mean=1.2} y \texttt{variance=0.7}, la política híbrida también obtuvo el mejor resultado, 
+con 89 vidas salvadas y el menor sufrimiento global entre las configuraciones comparadas.
+
+En términos computacionales, las políticas simples fueron mucho más rápidas, 
+pero produjeron soluciones de menor calidad. 
+Las metaheurísticas mejoraron el desempeño clínico a costa de un mayor tiempo de ejecución, 
+especialmente en el caso de \texttt{Iterated Local Search} y de la política híbrida, 
+que requieren múltiples evaluaciones por simulación.
+
+En conjunto, los experimentos confirman que la búsqueda metaheurística permite aproximarse mejor al óptimo 
+que las reglas heurísticas simples, especialmente en escenarios con mayor complejidad y escasez de recursos.
+
+% =========================================================
+% 8. Resultados y análisis
+% =========================================================
+\section{Resultados y Análisis}
+
+Los ensayos experimentales revelaron un comportamiento consistente entre las estrategias metaheurísticas examinadas. 
+Tanto \texttt{Iterated Local Search} como \texttt{Simulated Annealing} fundamentan su éxito en la exploración 
+sistemática de vecindarios sobre el espacio de permutaciones de la cola de pacientes, 
+logrando refinar progresivamente las soluciones iniciales. En la totalidad de las instancias críticas evaluadas, 
+ambos enfoques superaron de manera categórica a las heurísticas basales, 
+optimizando simultáneamente las dos métricas fundamentales del sistema: la maximización de vidas salvadas y 
+la minimización del índice de sufrimiento acumulado.
+
+\subsection{Evaluación del Rendimiento Global}
+
+El análisis comparativo de los escenarios de prueba permite identificar una clara gradación en la 
+efectividad de las políticas. En el extremo inferior, los enfoques ingenuos o estocásticos 
+(\texttt{RandomPolicy} y \texttt{NegligentPolicy}) exhibieron el desempeño más deficiente debido a 
+su incapacidad para modelar la urgencia clínica. Si bien la incorporación de criterios médicos en 
+\texttt{SeverityPolicy} mitiga parcialmente este impacto, su naturaleza determinista (greedy) 
+limita su efectividad ante flujos complejos de pacientes. 
+En contraposición, \texttt{Simulated Annealing} e \texttt{Iterated Local Search} 
+convergieron de manera recurrente a regiones subóptimas de alta calidad, 
+demostrando una eficacia equivalente en la explotación del espacio de búsqueda.
+
+\begin{table}[htbp]
+\centering
+\caption{Clasificación taxonómica de las políticas según su rendimiento}
+\label{tab:taxonomia_politicas}
+\begin{tabular}{lll}
+\hline
+\textbf{Categoría} & \textbf{Políticas} & \textbf{Eficiencia Relativa} \\ \hline
+Basal & \texttt{Random}, \texttt{Negligent} & Crítica (Alto sufrimiento / Alta mortalidad) \\
+Heurística Simple & \texttt{Severity} & Moderada (Subóptima por miopía algorítmica) \\
+Metaheurística & \texttt{Simulated Annealing}, \texttt{ILS} & Elevada (Convergencia a regiones óptimas) \\
+Híbrida & \texttt{SA-ILS} & Superior (Máxima robustez y dominancia) \\ \hline
+\end{tabular}
+\end{table}
+
+Es destacable que la variante híbrida (\texttt{SA-ILS}) capitalizó las fortalezas complementarias de ambos paradigmas, 
+consolidando los mejores indicadores globales. 
+Mientras que el esquema de enfriamiento de SA proporciona una flexibilidad matemática ideal para evadir 
+óptimos locales en las fases tempranas de la simulación, el operador de Hill Climbing de 
+ILS ejecuta una intensificación agresiva y determinista sobre las soluciones prometedoras.
+
+\subsection{Dinámica Comparativa Inter-Políticas}
+
+A pesar de la paridad estadística general entre ILS y SA, 
+sus dinámicas de convergencia difieren según la naturaleza de la instancia. 
+SA manifiesta una alta sensibilidad a la topología del espacio de soluciones, 
+logrando configuraciones superiores en escenarios con transiciones de fase marcadas, 
+a expensas de una mayor volatilidad temporal. Por su parte, ILS ofrece un comportamiento altamente estable y 
+computacionalmente eficiente, idóneo para la inserción incremental de pacientes en tiempo real. 
+
+La combinación de estas propiedades en la política híbrida mitiga la varianza residual de los métodos individuales. 
+Esta propiedad de dominancia estocástica es crucial para su transferencia a entornos de triaje clínico real, 
+donde la predictibilidad de la política ante fluctuaciones imprevistas de la demanda es tan prioritaria como la 
+optimización del valor esperado del rendimiento.
+
+\subsection{Análisis de Sensibilidad Paramétrica}
+
+La robustez de los algoritmos se evaluó sometiendo al sistema a variaciones en las condiciones de contorno 
+del entorno hospitalario (capacidad instalada y tasas de arribo). Los resultados demuestran que la ventaja 
+competitiva de las metaheurísticas es inversamente proporcional a la holgura de los recursos del escenario:
+
+\begin{equation}
+\lim_{\text{Recursos} \to \infty} \Delta(\text{Rendimiento}) = 0
+\end{equation}
+
+Bajo escenarios de alta disponibilidad, el problema de secuenciación se trivializa y las trayectorias de todas 
+las políticas convergen. 
+No obstante, ante restricciones severas de acoplamiento médico —donde el sistema opera cerca del punto de saturación—, 
+la capacidad de sintonización fina de ILS y la exploración estocástica de SA previenen el colapso del flujo hospitalario. 
+Finalmente, se constató que la variante híbrida exhibe la menor elasticidad respecto al ajuste de hiperparámetros internos 
+($max\_iterations$ y régimen de temperatura), 
+consolidándose como la arquitectura más resiliente frente a la incertidumbre del modelo.
+
+% =========================================================
+% 9. Limitaciones y mejoras
+% =========================================================
+\section{Limitaciones y posibles mejoras}
+
+Aunque los resultados obtenidos son prometedores, el sistema presenta varias limitaciones. 
+En primer lugar, el comportamiento clínico de los pacientes se modela mediante reglas simplificadas y parámetros sintéticos, 
+por lo que no representa completamente la complejidad de la evolución médica real. 
+Asimismo, el dataset fue generado artificialmente con apoyo de un LLM, lo que puede introducir sesgos o 
+inconsistencias respecto a datos clínicos reales.
+
+Por otra parte, la evaluación de las soluciones depende de simulaciones estocásticas, 
+por lo que una misma política puede producir resultados ligeramente distintos entre ejecuciones. 
+Además, las metaheurísticas empleadas no garantizan alcanzar el óptimo global, sino aproximaciones de alta calidad.
+
+Como líneas futuras de trabajo, se propone incorporar datos hospitalarios reales, modelar una mayor variedad de recursos y 
+restricciones, incluir diferentes tipos de pacientes y niveles de atención, 
+así como realizar análisis estadísticos sobre múltiples corridas para obtener intervalos de confianza. 
+También sería interesante explorar técnicas más avanzadas de optimización, como algoritmos genéticos, 
+búsqueda tabú, aprendizaje por refuerzo o enfoques híbridos que combinen simulación, 
+optimización y modelos de lenguaje para apoyar la toma de decisiones clínicas.
+
+% =========================================================
+% 10. Conclusiones
+% =========================================================
+\section{Conclusiones}
+
+En este trabajo se abordó el problema de priorización de casos clínicos bajo recursos limitados mediante 
+una combinación de simulación basada en eventos discretos, técnicas de optimización y modelos de lenguaje. 
+Se desarrolló un entorno de simulación capaz de representar la llegada de pacientes, la evolución de su estado de salud, 
+el consumo de recursos hospitalarios y las decisiones de admisión bajo restricciones operacionales.
+
+El uso de un LLM permitió enriquecer descripciones clínicas y generar automáticamente atributos relevantes para la simulación, 
+facilitando la construcción de un conjunto de datos coherente con el dominio del problema. 
+Sobre este escenario se evaluaron diversas políticas de priorización, desde estrategias simples hasta 
+metaheurísticas de búsqueda.
+
+Los resultados obtenidos muestran que las políticas basadas en optimización superan consistentemente a las heurísticas básicas, 
+logrando salvar una mayor cantidad de pacientes y reducir el deterioro clínico acumulado. 
+En particular, la combinación de \textit{Iterated Local Search} y \textit{Simulated Annealing} 
+presentó el comportamiento más robusto entre las alternativas evaluadas.
+
+Finalmente, el proyecto demuestra que la integración de inteligencia artificial y simulación constituye 
+una herramienta viable para apoyar la toma de decisiones en entornos hospitalarios con recursos escasos, 
+permitiendo analizar diferentes estrategias de asignación y estudiar su impacto antes de aplicarlas en la práctica.
+
+\end{document}
