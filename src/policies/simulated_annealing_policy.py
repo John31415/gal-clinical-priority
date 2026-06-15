@@ -32,6 +32,11 @@ class PermState(State):
 
 class SimAnnealPolicy(PriorityPolicy):
 
+    def __init__(self, t0: float = 100.0, decay: float = 0.9, t_min: float = 1.0):
+        self.t0 = t0
+        self.decay = decay
+        self.t_min = t_min
+
     def order_patients(
         self, patients: list[Patient], hospital: Hospital, arrivals: list[Patient] = []
     ) -> list[Patient]:
@@ -44,7 +49,9 @@ class SimAnnealPolicy(PriorityPolicy):
             )
 
         state = PermState(random_order, f_eval)
-        best_state = simulated_annealing(state)
+        best_state = simulated_annealing(
+            s0=state, t0=self.t0, decay=self.decay, t_min=self.t_min
+        )
         return [patients[i] for i in best_state.s]
 
     def __repr__(self):
