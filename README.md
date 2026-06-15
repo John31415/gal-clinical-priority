@@ -238,8 +238,3 @@ The system evaluates multiple policies over the same scenario and reports:
 * and execution time.
 
 For a given scenario, the best policy is selected according to the project’s objective criteria.
-
-## Notes
-
-* The dataset generation and simulation are intentionally modular so they can be extended later.
-* The LLM is used as a functional part of
