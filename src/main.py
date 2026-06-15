@@ -1,4 +1,3 @@
-from src.generators.scenario_generator import generate_scenario
 from src.simulation.intelligent_simulator import IntelligentSimulator
 from src.metrics.metrics import simulation_statistics
 from src.policies.base_policy import PriorityPolicy
