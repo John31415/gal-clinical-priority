@@ -14,3 +14,7 @@ class PriorityPolicy(ABC):
     @abstractmethod
     def __repr__(self):
         pass
+
+    @abstractmethod
+    def sig(self):
+        return "None"

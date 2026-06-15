@@ -56,3 +56,6 @@ class SimAnnealPolicy(PriorityPolicy):
 
     def __repr__(self):
         return "Simulated Annealing Policy"
+
+    def sig(self):
+        return f"t0: {self.t0}\n" f"decay: {self.decay}\n" f"t_min: {self.t_min}"

@@ -13,3 +13,6 @@ class SeverityPolicy(PriorityPolicy):
 
     def __repr__(self):
         return "Severity Policy"
+
+    def sig(self):
+        return super().sig()

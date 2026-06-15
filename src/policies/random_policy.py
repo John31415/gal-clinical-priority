@@ -16,3 +16,6 @@ class RandomPolicy(PriorityPolicy):
 
     def __repr__(self):
         return "Random Policy"
+
+    def sig(self):
+        return super().sig()

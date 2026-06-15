@@ -118,3 +118,6 @@ class ILSPolicy(PriorityPolicy):
 
     def __repr__(self):
         return "Iterated Local Search Policy"
+
+    def sig(self):
+        return f"max_iterations: {self.max_iterations}"

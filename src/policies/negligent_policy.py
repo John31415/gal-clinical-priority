@@ -13,3 +13,6 @@ class NegligentPolicy(PriorityPolicy):
 
     def __repr__(self):
         return "Negligent Policy"
+
+    def sig(self):
+        return super().sig()
