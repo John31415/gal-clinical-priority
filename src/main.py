@@ -9,6 +9,7 @@ from src.policies.negligent_policy import NegligentPolicy
 from src.policies.iterated_local_search_policy import ILSPolicy
 from src.domain.hospital import Hospital
 from src.domain.patient import Patient
+from src.policies.sa_ils_policy import SAILSPolicy
 from copy import deepcopy
 import time
 
@@ -35,7 +36,7 @@ def simulate_policy(
 
 def main() -> None:
     hospital, patients = generate_scenario(
-        patient_count=100, shuffle_patients=True, mean=1.1, variance=0.05
+        patient_count=50, shuffle_patients=True, mean=1.1, variance=0.05
     )
     policies = [
         RandomPolicy(),
@@ -43,6 +44,7 @@ def main() -> None:
         NegligentPolicy(),
         SimAnnealPolicy(),
         ILSPolicy(),
+        SAILSPolicy(),
     ]
     best_policy = None
     max_lives_saved = 0

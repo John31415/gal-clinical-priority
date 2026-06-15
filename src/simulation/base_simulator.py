@@ -2,7 +2,6 @@ from src.domain.hospital import Hospital
 from src.domain.patient import Patient, PatientStatus
 from src.domain.resource import Resource
 from src.dynamics.health_dynamics import deteriorate_patient, improve_patient
-from src.dynamics.resource_dynamics import compute_resource_consumption
 from abc import ABC, abstractmethod
 
 
@@ -68,15 +67,16 @@ class BaseSimulator(ABC):
     def _consume_resources_for_patient(self, patient: Patient) -> bool:
         if not patient.required_resources:
             return True
-        requirement_multiplier = compute_resource_consumption(patient=patient)
         required_amounts: list[tuple[Resource, float]] = []
         for r in patient.required_resources:
             amount = max(
                 0.0,
-                r.quantity * requirement_multiplier
-                - patient.consumed_resources[r.resource],
+                r.quantity - patient.consumed_resources[r.resource],
             )
             required_amounts.append((r.resource, amount))
+        for resource, amount in required_amounts:
+            if self.hospital.available_resources.get(resource, 0.0) < amount:
+                return False
         for resource, amount in required_amounts:
             self.hospital.available_resources[resource] -= amount
             patient.consumed_resources[resource] += amount
