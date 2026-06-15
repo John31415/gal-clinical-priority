@@ -88,24 +88,31 @@ class ILSPolicy(PriorityPolicy):
         patients = self._greedy_insertion(
             patients=patients, new_patient=new_patient, hospital=hospital
         )
-        patients = self._hill_climbing(patients=patients, hospital=hospital)
-        best_cost = patient_order_evaluation(
-            permutation=list(range(len(patients))), patients=patients, hospital=hospital
+        current_patients = self._hill_climbing(patients=patients, hospital=hospital)
+        current_cost = patient_order_evaluation(
+            permutation=list(range(len(current_patients))),
+            patients=current_patients,
+            hospital=hospital,
         )
-        for i in range(max_iterations):
-            shaken_patients = self._perturbation(patients)
+        best_patients = list(current_patients)
+        best_cost = current_cost
+        for _ in range(max_iterations):
+            shaken_patients = self._perturbation(current_patients)
             candidate_patients = self._hill_climbing(
                 patients=shaken_patients, hospital=hospital
             )
             candidate_cost = patient_order_evaluation(
-                permutation=list(range(len(patients))),
+                permutation=list(range(len(candidate_patients))),
                 patients=candidate_patients,
                 hospital=hospital,
             )
+            if candidate_cost >= current_cost:
+                current_patients = candidate_patients
+                current_cost = candidate_cost
             if candidate_cost > best_cost:
-                patients = candidate_patients
+                best_patients = list(candidate_patients)
                 best_cost = candidate_cost
-        return patients
+        return best_patients
 
     def __repr__(self):
         return "Iterated Local Search Policy"
